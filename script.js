@@ -144,10 +144,11 @@
                 throw new Error(data.msg);
             }
         })
-        .catch(function () {
-            btn.textContent = lang === 'zh' ? '发送失败，请重试' : 'Failed, please retry';
+        .catch(function (err) {
+            console.error('PushPlus error:', err);
+            btn.textContent = lang === 'zh' ? '发送失败: ' + err.message : 'Failed: ' + err.message;
             btn.style.opacity = '1';
-            setTimeout(function () { btn.textContent = originalText; btn.disabled = false; }, 3000);
+            setTimeout(function () { btn.textContent = originalText; btn.disabled = false; }, 4000);
         });
     });
 
