@@ -96,19 +96,59 @@
         });
     });
 
-    // ---- Form ----
+    // ---- Form → PushPlus WeChat Notification ----
+    var PP_TOKEN = '28de78114797448eb1bbceb1c19d6914';
+
     document.getElementById('contactForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        const btn = this.querySelector('button[type="submit"]');
-        const txt = btn.textContent;
+        var form = this;
+        var btn = form.querySelector('button[type="submit"]');
+        var originalText = btn.textContent;
         btn.textContent = lang === 'zh' ? '发送中...' : 'Sending...';
         btn.disabled = true;
         btn.style.opacity = '.6';
-        setTimeout(() => {
-            btn.textContent = lang === 'zh' ? '已发送!' : 'Sent!';
+
+        var name = document.getElementById('name').value.trim();
+        var email = document.getElementById('email').value.trim();
+        var company = document.getElementById('company').value.trim();
+        var message = document.getElementById('message').value.trim();
+
+        var content = [
+            '<h3 style="color:#1B3764;margin-bottom:12px;">亚美投资 - 网站新咨询</h3>',
+            '<table style="width:100%;border-collapse:collapse;font-size:14px;">',
+            '<tr><td style="padding:8px 12px;background:#f5f7fb;font-weight:bold;width:80px;">姓名</td><td style="padding:8px 12px;">' + name + '</td></tr>',
+            '<tr><td style="padding:8px 12px;background:#f5f7fb;font-weight:bold;">邮箱</td><td style="padding:8px 12px;">' + email + '</td></tr>',
+            '<tr><td style="padding:8px 12px;background:#f5f7fb;font-weight:bold;">公司</td><td style="padding:8px 12px;">' + (company || '未填写') + '</td></tr>',
+            '<tr><td style="padding:8px 12px;background:#f5f7fb;font-weight:bold;vertical-align:top;">留言</td><td style="padding:8px 12px;">' + message.replace(/\n/g, '<br>') + '</td></tr>',
+            '</table>',
+            '<p style="color:#999;font-size:11px;margin-top:16px;">来自 Asia &amp; America Investments 官网联系表单</p>'
+        ].join('');
+
+        fetch('https://www.pushplus.plus/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                token: PP_TOKEN,
+                title: '新咨询 - ' + name + (company ? '（' + company + '）' : ''),
+                content: content,
+                template: 'html'
+            })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (data.code === 200) {
+                btn.textContent = lang === 'zh' ? '已发送!' : 'Sent!';
+                btn.style.opacity = '1';
+                setTimeout(function () { btn.textContent = originalText; btn.disabled = false; form.reset(); }, 2500);
+            } else {
+                throw new Error(data.msg);
+            }
+        })
+        .catch(function () {
+            btn.textContent = lang === 'zh' ? '发送失败，请重试' : 'Failed, please retry';
             btn.style.opacity = '1';
-            setTimeout(() => { btn.textContent = txt; btn.disabled = false; this.reset(); }, 2000);
-        }, 1200);
+            setTimeout(function () { btn.textContent = originalText; btn.disabled = false; }, 3000);
+        });
     });
 
     // ---- Hero Parallax ----
